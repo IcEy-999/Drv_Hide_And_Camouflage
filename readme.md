@@ -19,3 +19,6 @@ Unsigned driver disguised as 360 driver
 Look at the device name, this is my driver and device
 
 ![](https://github.com/IcEy-999/Drv_Hide_And_Camouflage/blob/main/picture/HRJ.png)
+
+
+Due to the use of a large number of Windows unexported functions, Need to modify InitAllOffSet() at Kernel_PDB.c
