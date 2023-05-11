@@ -4,6 +4,9 @@
 Due to the use of a large number of Windows unexported functions, Need to modify InitAllOffSet() at Kernel_PDB.c
 
 
+Win10 and Win11 tested for 40+hours without being detected by patchguard
+
+
 
 ## Hide:
 
